@@ -1,0 +1,54 @@
+@model FinalProject.MVC.Models.Bid
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create Bid</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create" enctype="multipart/form-data" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="BidStatus" class="control-label">Status</label>
+                <select asp-for="BidStatus" class="form-control" asp-items="Html.GetEnumSelectList<BidStatus>()"></select>
+                <span asp-validation-for="BidStatus" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BidNote" class="control-label">Note</label>
+                <textarea asp-for="BidNote" class="form-control"></textarea>
+                <span asp-validation-for="BidNote" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Proposal" class="control-label"></label>
+                <input asp-for="Proposal" class="form-control" />
+                <span asp-validation-for="Proposal" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AttachmentFile" class="control-label">Attachment</label>
+                <input type="file" asp-for="AttachmentFile" class="form-control" />
+                <span asp-validation-for="AttachmentFile" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StartTime" class="control-label">Start Time</label>
+                <input asp-for="StartTime" class="form-control" type="datetime-local" />
+                <span asp-validation-for="StartTime" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EndTime" class="control-label">End Time</label>
+                <input asp-for="EndTime" class="form-control" type="datetime-local" />
+                <span asp-validation-for="EndTime" class="text-danger"></span>
+            </div>
+            <div class="form-group mt-3">
+                <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

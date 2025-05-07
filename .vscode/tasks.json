@@ -1,0 +1,25 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/${input:p}/${input:p}.csproj"
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ],
+  "inputs": [
+    {
+      "type": "pickString",
+      "id": "p",
+      "description": "Select the project to build",
+      "options": [
+        "FinalProject.MVC"
+      ]
+    }
+  ]
+}

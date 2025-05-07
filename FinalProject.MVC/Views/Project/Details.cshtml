@@ -1,0 +1,99 @@
+@model FinalProject.MVC.Models.Project
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>@Model.Title</h1>
+
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Tags)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Tags)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Deadline)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Deadline)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ProjectStatus)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ProjectStatus)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Funding)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Funding)
+        </dd>
+        <dt class="col-sm-2">
+            Submitted By
+        </dt>
+        <dd class="col-sm-10">
+            <a asp-controller="User" asp-action="Profile" asp-route-id="@Model.SubmitterId">
+                @(Model.Submitter?.DisplayName ?? Model.Submitter?.UserName ?? "Unknown")
+            </a>
+        </dd>
+    </dl>
+</div>
+
+<h3>Bids (@Model.Bids.Count)</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Bidder</th>
+            <th>Status</th>
+            <th>Proposal</th>
+            <th>Submitted</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var bid in Model.Bids.OrderByDescending(b => b.SubmittedTime))
+        {
+            <tr>
+                <td>
+                    <a asp-controller="User" asp-action="Profile" asp-route-id="@bid.BidderId">
+                        @(bid.Bidder?.DisplayName ?? bid.Bidder?.UserName ?? "Unknown")
+                    </a>
+                </td>
+                <td>@bid.BidStatus</td>
+                <td>@bid.Proposal</td>
+                <td>@bid.SubmittedTime</td>
+                <td>
+                    <a asp-controller="Bids" asp-action="Details" asp-route-id="@bid.Id" class="btn btn-sm btn-info">Details</a>
+                    @if (User.IsInRole("Admin") || (User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value == bid.BidderId))
+                    {
+                        <a asp-controller="Bids" asp-action="Edit" asp-route-id="@bid.Id" class="btn btn-sm btn-primary">Edit</a>
+                        <a asp-controller="Bids" asp-action="Delete" asp-route-id="@bid.Id" class="btn btn-sm btn-danger">Delete</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div>
+    @if (User.IsInRole("Admin") || (User.IsInRole("ProjectManager") && Model.SubmitterId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
+    {
+        <a asp-action="Edit" asp-route-id="@Model?.ProjectId" class="btn btn-primary">Edit</a>
+    }
+    @if (User.IsInRole("Admin") || User.IsInRole("Bidder"))
+    {
+        <a asp-controller="Bids" asp-action="Create" asp-route-projectId="@Model?.ProjectId" class="btn btn-success">Submit Bid</a>
+    }
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>

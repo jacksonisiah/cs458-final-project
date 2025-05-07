@@ -1,0 +1,7 @@
+﻿services:
+  finalproject.mvc:
+    image: finalproject.mvc
+    build:
+      context: .
+      dockerfile: FinalProject.MVC/Dockerfile
+

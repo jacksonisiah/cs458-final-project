@@ -1,0 +1,75 @@
+@model FinalProject.MVC.Models.Bid
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit Bid</h1>
+<p class="text-muted">Attachments cannot be edited once the bid is placed. Delete and replace the bid to edit the attachment.</p>
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="ProjectId" />
+            <input type="hidden" asp-for="BidderId" />
+            <input type="hidden" asp-for="BidStatus" />
+            <input type="hidden" asp-for="SubmittedTime" />
+            <input type="hidden" asp-for="AttachmentPath" />
+
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="form-group">
+                    <label asp-for="BidStatus" class="control-label">Status</label>
+                    <select asp-for="BidStatus" class="form-control" asp-items="Html.GetEnumSelectList<BidStatus>()"></select>
+                    <span asp-validation-for="BidStatus" class="text-danger"></span>
+                </div>
+            }
+            else 
+            {
+                <div class="form-group">
+                    <label class="control-label">Status</label>
+                    <input type="text" class="form-control" value="@Model.BidStatus" readonly />
+                </div>
+            }
+            
+            <div class="form-group">
+                <label asp-for="BidNote" class="control-label">Note</label>
+                <textarea asp-for="BidNote" class="form-control"></textarea>
+                <span asp-validation-for="BidNote" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Proposal" class="control-label"></label>
+                <input asp-for="Proposal" class="form-control" maxlength="255" />
+                <span asp-validation-for="Proposal" class="text-danger"></span>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.AttachmentPath))
+            {
+                <div class="form-group">
+                    <label class="control-label">Current Attachment:</label>
+                    <p>@Model.AttachmentPath</p>
+                </div>
+            }
+            <div class="form-group">
+                <label asp-for="StartTime" class="control-label">Start Time</label>
+                <input asp-for="StartTime" class="form-control" type="datetime-local" />
+                <span asp-validation-for="StartTime" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EndTime" class="control-label">End Time</label>
+                <input asp-for="EndTime" class="form-control" type="datetime-local" />
+                <span asp-validation-for="EndTime" class="text-danger"></span>
+            </div>
+            <div class="form-group mt-3">
+                <input type="submit" value="Save" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

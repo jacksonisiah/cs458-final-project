@@ -1,0 +1,30 @@
+﻿<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+
+<script>
+    $.validator.addMethod("checkDeadline", function(value, element) {
+        var today = new Date().setHours(0,0,0,0);
+        var val = new Date(value);
+
+        return this.optional(element) || (val >= today);
+        }, "Must be later than today.");
+
+    $('#pCreateForm').validate({
+        rules: {
+            deadline: {
+                required: true,
+                date: true,
+                checkDeadline: true
+            }
+        },
+        messages: {
+            deadline: {
+                required: 'Deadline is required',
+                date: 'Must be a valid date',
+                checkDeadline: 'Must be later than today'
+            }
+        }
+    });
+
+</script>

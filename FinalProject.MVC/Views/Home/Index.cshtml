@@ -1,0 +1,72 @@
+﻿@model IEnumerable<FinalProject.MVC.Models.Project>
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+@if (User.Identity?.IsAuthenticated ?? false)
+{
+    <h1>Projects</h1>
+
+    @if (User.IsInRole("Admin") || User.IsInRole("ProjectManager"))
+    {
+        <p>
+            <a asp-controller="Project" asp-action="Create" class="btn btn-primary">Create New Project</a>
+        </p>
+    }
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>@Html.DisplayNameFor(model => model.Title)</th>
+                <th>@Html.DisplayNameFor(model => model.Description)</th>
+                <th>@Html.DisplayNameFor(model => model.Tags)</th>
+                <th>@Html.DisplayNameFor(model => model.Deadline)</th>
+                <th>@Html.DisplayNameFor(model => model.ProjectStatus)</th>
+                <th>@Html.DisplayNameFor(model => model.Funding)</th>
+                <th>Submitter</th>
+                <th>Bids</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model ?? Enumerable.Empty<Project>())
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Description)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Tags)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Deadline)</td>
+                    <td>@Html.DisplayFor(modelItem => item.ProjectStatus)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Funding)</td>
+                    <td>
+                        <a asp-controller="User" asp-action="Profile" asp-route-id="@item.SubmitterId">
+                            @(item.Submitter?.DisplayName ?? item.Submitter?.UserName ?? "Unknown")
+                        </a>
+                    </td>
+                    <td>@item.Bids.Count()</td>
+                    <td>
+                        <a asp-controller="Project" asp-action="Details" asp-route-id="@item.ProjectId" class="btn btn-sm btn-info">Details</a>
+                        @if (User.IsInRole("Admin") || (User.IsInRole("ProjectManager") && item.SubmitterId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
+                        {
+                            <a asp-controller="Project" asp-action="Edit" asp-route-id="@item.ProjectId" class="btn btn-sm btn-primary">Edit</a>
+                            <a asp-controller="Project" asp-action="Delete" asp-route-id="@item.ProjectId" class="btn btn-sm btn-danger">Delete</a>
+                        }
+                        <a asp-controller="Project" asp-action="Details" asp-route-id="@item.ProjectId" class="btn btn-sm btn-secondary">View Bids</a>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Bidder"))
+                        {
+                            <a asp-controller="Bids" asp-action="Create" asp-route-projectId="@item.ProjectId" class="btn btn-sm btn-success">Submit Bid</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="text-center">
+        <h1 class="display-4">Welcome</h1>
+        <p>Please log in to view and manage projects.</p>
+    </div>
+}

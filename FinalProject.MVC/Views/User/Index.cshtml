@@ -1,0 +1,31 @@
+@model IEnumerable<FinalProject.MVC.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "Users";
+}
+
+<div class="container">
+    <h1 class="mb-4">Users</h1>
+
+    <div class="row">
+        @foreach (var user in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    @if (!string.IsNullOrEmpty(user.ProfilePicture))
+                    {
+                        <img src="@user.ProfilePicture" class="card-img-top rounded-circle p-3" alt="Profile picture" style="height: 200px; object-fit: cover;">
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title">@(user.DisplayName ?? user.UserName)</h5>
+                        @if (!string.IsNullOrEmpty(user.Bio))
+                        {
+                            <p class="card-text">@user.Bio</p>
+                        }
+                        <a asp-action="Profile" asp-route-id="@user.Id" class="btn btn-primary">View Profile</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

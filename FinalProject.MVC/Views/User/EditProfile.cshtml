@@ -1,0 +1,70 @@
+@model FinalProject.MVC.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Edit Profile";
+    var roles = (List<string>)ViewData["AvailableRoles"]!;
+    var currentRole = (string)ViewData["CurrentRole"]!;
+    // Get the ID of the user being edited, which might be different from the logged-in user if an admin is editing
+    var editingUserId = ViewData["EditingUserId"] as string ?? Model.Id;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Edit Profile</h2>
+                </div>
+                <div class="card-body">
+                    <form asp-action="EditProfile" asp-route-id="@editingUserId" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="Id" /> @* Ensure Model.Id is correctly bound if needed, though editingUserId is used for routing *@
+                        <div class="form-group mb-3">
+                            <label asp-for="DisplayName" class="control-label">Display Name</label>
+                            <input asp-for="DisplayName" class="form-control" />
+                            <span asp-validation-for="DisplayName" class="text-danger"></span>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label asp-for="Bio" class="control-label">Biography</label>
+                            <textarea asp-for="Bio" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Bio" class="text-danger"></span>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label asp-for="ProfilePicture" class="control-label">Profile Picture URL</label>
+                            <input asp-for="ProfilePicture" class="form-control" />
+                            <span asp-validation-for="ProfilePicture" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="role" class="control-label">Role</label>
+                            <select name="role" class="form-control" @(User.IsInRole("Admin") ? "" : "disabled")>
+                                <option value="">Select Role</option>
+                                @foreach (var roleName in roles!) // Renamed variable to avoid conflict
+                                {
+                                    <option value="@roleName" selected="@(roleName == currentRole)">@roleName</option>
+                                }
+                            </select>
+                            @if (!User.IsInRole("Admin"))
+                            {
+                                <small class="form-text text-muted">You will need to log out after changing your role. Contact an admin to change your role.</small>
+                            }
+                            else
+                            {
+                                <small class="form-text text-muted">Admins can change user roles. User will need to log out for changes to take effect.</small>
+                            }
+                        </div>
+
+                        <div class="form-group d-flex justify-content-between">
+                            <a asp-action="Profile" asp-route-id="@editingUserId" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
