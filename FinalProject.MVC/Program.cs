@@ -96,6 +96,6 @@ public class Program
             .WithStaticAssets();
         app.MapRazorPages().WithStaticAssets();
 
-        await app.RunAsync("http://localhost:5001");
+        await app.RunAsync($"http://localhost:{app.Configuration["Port"]}");
     }
 }
