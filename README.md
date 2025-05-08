@@ -19,6 +19,12 @@ A project management app with EFCore.
 **Docker method**
 - TBD
 
+
+**Default admin account**
+- Username: `no@catfile.me`
+- Password: `Password123!`
+
+
 ### previews
 
 |   |   |
