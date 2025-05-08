@@ -3,6 +3,7 @@ using FinalProject.MVC.Models;
 using FinalProject.MVC.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -14,12 +15,9 @@ public class BidsController(
     ApplicationDbContext ctx,
     UserManager<ApplicationUser> userManager,
     EventLogService eventLogService,
-    MailerService mailerService
+    IEmailSender emailSender
 ) : Controller
 {
-    private readonly EventLogService _eventLogService = eventLogService;
-    private readonly MailerService _mailerService = mailerService;
-
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null)
@@ -129,7 +127,7 @@ public class BidsController(
             ctx.Add(bid);
             await ctx.SaveChangesAsync();
 
-            await _eventLogService.LogEventAsync(
+            await eventLogService.LogEventAsync(
                 bid.BidderId,
                 "Bid Created",
                 $"Bid (ID: {bid.Id}) was created for project (ID: {bid.ProjectId}).",
@@ -144,8 +142,8 @@ public class BidsController(
                     .FirstOrDefaultAsync(p => p.ProjectId == bid.ProjectId.Value);
                 if (project?.Submitter?.Email != null)
                 {
-                    await _mailerService.SendEmailAsync(
-                        project.Submitter.Email,
+                    await emailSender.SendEmailAsync(
+                        project.Submitter.Email, // Email string
                         $"New Bid Submitted for Project: {project.Title}",
                         $"A new bid has been submitted for your project '{project.Title}'. Bid ID: {bid.Id}."
                     );
@@ -242,7 +240,7 @@ public class BidsController(
                 ctx.Update(bid);
                 await ctx.SaveChangesAsync();
 
-                await _eventLogService.LogEventAsync(
+                await eventLogService.LogEventAsync(
                     userId!,
                     "Bid Edited",
                     $"Bid (ID: {bid.Id}) was edited.",
@@ -257,8 +255,8 @@ public class BidsController(
                         .FirstOrDefaultAsync(p => p.ProjectId == bid.ProjectId.Value);
                     if (project?.Submitter?.Email != null)
                     {
-                        await _mailerService.SendEmailAsync(
-                            project.Submitter.Email,
+                        await emailSender.SendEmailAsync(
+                            project.Submitter.Email, // Email string
                             $"Bid Updated for Project: {project.Title}",
                             $"A bid (ID: {bid.Id}) for your project '{project.Title}' has been updated."
                         );
@@ -327,14 +325,14 @@ public class BidsController(
 
             if (bid.Project?.Submitter?.Email != null)
             {
-                await _mailerService.SendEmailAsync(
-                    bid.Project.Submitter.Email,
+                await emailSender.SendEmailAsync(
+                    bid.Project.Submitter.Email, // Email string
                     $"Bid Deleted for Project: {bid.Project.Title}",
                     $"A bid (ID: {bid.Id}) for your project '{bid.Project.Title}' has been deleted."
                 );
             }
 
-            await _eventLogService.LogEventAsync(
+            await eventLogService.LogEventAsync(
                 userId!,
                 "Bid Deleted",
                 $"Bid (ID: {bid.Id}) was deleted from project (ID: {bid.ProjectId}).",

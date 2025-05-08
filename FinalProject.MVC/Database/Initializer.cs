@@ -1,9 +1,5 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using FinalProject.MVC.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 namespace FinalProject.MVC.Data;

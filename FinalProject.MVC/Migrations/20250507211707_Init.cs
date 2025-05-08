@@ -1,5 +1,4 @@
-﻿using System;
-using FinalProject.MVC.Models;
+﻿using FinalProject.MVC.Models;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 

@@ -1,5 +1,3 @@
-using System;
-
 namespace FinalProject.MVC.Models
 {
     public class EventLogViewModel

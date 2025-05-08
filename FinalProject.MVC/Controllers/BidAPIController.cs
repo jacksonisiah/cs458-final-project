@@ -2,7 +2,6 @@ using System.Security.Claims;
 using FinalProject.MVC.Data;
 using FinalProject.MVC.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,16 +11,13 @@ namespace FinalProject.MVC.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public class BidAPIController : ControllerBase
+public class BidAPIController(
+    ApplicationDbContext context,
+    UserManager<ApplicationUser> userManager
+) : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
-
-    public BidAPIController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
-    {
-        _context = context;
-        _userManager = userManager;
-    }
+    private readonly ApplicationDbContext _context = context;
+    private readonly UserManager<ApplicationUser> _userManager = userManager;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Bid>>> GetBids(int? projectId)

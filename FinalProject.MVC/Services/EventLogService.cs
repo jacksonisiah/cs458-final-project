@@ -1,8 +1,6 @@
-using System;
 using FinalProject.MVC.Data;
 using FinalProject.MVC.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
 
 namespace FinalProject.MVC.Services;
 
@@ -44,7 +42,7 @@ public class EventLogService(
             "Event logged: {EventType} for User {UserId} ({UserDisplayName}). Project: {ProjectId}, Bid: {BidId}. {EventDescription}",
             eventType,
             userId,
-            userDisplayName, // Log DisplayName/UserName
+            userDisplayName,
             projectId,
             bidId,
             eventDescription

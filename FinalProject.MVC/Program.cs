@@ -48,8 +48,17 @@ public class Program
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
+        // Corrected registration:
+        builder.Services.AddTransient<
+            Microsoft.AspNetCore.Identity.IEmailSender<ApplicationUser>,
+            MailerService
+        >();
+        builder.Services.AddTransient<
+            Microsoft.AspNetCore.Identity.UI.Services.IEmailSender,
+            MailerService
+        >();
+
         builder.Services.AddControllersWithViews();
-        builder.Services.AddScoped<MailerService>();
         builder.Services.AddScoped<EventLogService>();
 
         builder.Services.AddEndpointsApiExplorer();

@@ -3,6 +3,7 @@ using FinalProject.MVC.Models;
 using FinalProject.MVC.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,13 +14,13 @@ public class ProjectController(
     ApplicationDbContext ctx,
     UserManager<ApplicationUser> userManager,
     EventLogService eventLogService,
-    MailerService mailerService
+    IEmailSender emailSender
 ) : Controller
 {
     private readonly ApplicationDbContext _ctx = ctx;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly EventLogService _eventLogService = eventLogService;
-    private readonly MailerService _mailerService = mailerService;
+    private readonly IEmailSender _emailSender = emailSender;
 
     public IActionResult Index()
     {
@@ -175,7 +176,7 @@ public class ProjectController(
                     var projectSubmitter = await _userManager.FindByIdAsync(project.SubmitterId);
                     if (projectSubmitter?.Email != null)
                     {
-                        await _mailerService.SendEmailAsync(
+                        await _emailSender.SendEmailAsync(
                             projectSubmitter.Email,
                             $"Project Updated: {project.Title}",
                             $"Your project '{project.Title}' has been updated."
@@ -223,7 +224,7 @@ public class ProjectController(
     {
         var project = await _ctx
             .Projects.Include(p => p.Submitter)
-            .FirstOrDefaultAsync(p => p.ProjectId == id); // Include Submitter
+            .FirstOrDefaultAsync(p => p.ProjectId == id);
         if (project != null)
         {
             var userId = _userManager.GetUserId(User);
@@ -241,8 +242,8 @@ public class ProjectController(
 
             if (project.Submitter?.Email != null)
             {
-                await _mailerService.SendEmailAsync(
-                    project.Submitter.Email,
+                await _emailSender.SendEmailAsync(
+                    project.Submitter.Email, // Email string
                     $"Project Deleted: {project.Title}",
                     $"Your project '{project.Title}' has been deleted."
                 );
