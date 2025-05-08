@@ -4,6 +4,7 @@ using FinalProject.MVC.Data;
 using FinalProject.MVC.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FinalProject.MVC.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250508000513_EventLog")]
+    partial class EventLog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,6 +119,7 @@ namespace FinalProject.MVC.Migrations
                         .HasColumnName("bid_note");
 
                     b.Property<BidStatus>("BidStatus")
+                        .HasMaxLength(255)
                         .HasColumnType("bid_status")
                         .HasColumnName("bid_status");
 
@@ -140,7 +144,7 @@ namespace FinalProject.MVC.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("start_time");
 
-                    b.Property<DateTime>("SubmittedTime")
+                    b.Property<DateTime?>("SubmittedTime")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("submitted_time");
 
@@ -401,13 +405,11 @@ namespace FinalProject.MVC.Migrations
                 {
                     b.HasOne("FinalProject.MVC.Models.Bid", "Bid")
                         .WithMany()
-                        .HasForeignKey("BidId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("BidId");
 
                     b.HasOne("FinalProject.MVC.Models.Project", "Project")
                         .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("ProjectId");
 
                     b.Navigation("Bid");
 

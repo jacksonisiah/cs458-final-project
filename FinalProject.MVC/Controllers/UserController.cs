@@ -147,7 +147,6 @@ public class UserController(
 
         ViewData["AvailableRoles"] = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
         ViewData["CurrentRole"] = role;
-        // Pass the user ID to the view again in case of error
         ViewData["EditingUserId"] = userToUpdate.Id;
         return View(model);
     }

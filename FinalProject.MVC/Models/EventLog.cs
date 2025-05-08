@@ -25,4 +25,12 @@ public class EventLog
 
     [Column("uid")]
     public string UserId { get; set; } = null!;
+
+    [Column("project_id")]
+    public int? ProjectId { get; set; }
+    public Project? Project { get; set; }
+
+    [Column("bid_id")]
+    public int? BidId { get; set; }
+    public Bid? Bid { get; set; }
 }

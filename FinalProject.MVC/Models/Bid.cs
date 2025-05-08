@@ -18,7 +18,6 @@ public class Bid
     public string? BidderId { get; set; }
 
     [Column("bid_status")]
-    [StringLength(255)]
     public BidStatus BidStatus { get; set; } = BidStatus.Submitted;
 
     [Column("bid_note")]
@@ -35,7 +34,7 @@ public class Bid
     public string? AttachmentPath { get; set; }
 
     [Column("submitted_time")]
-    public DateTime? SubmittedTime { get; set; }
+    public DateTime SubmittedTime { get; set; }
 
     [Column("start_time")]
     public DateTime StartTime { get; set; }

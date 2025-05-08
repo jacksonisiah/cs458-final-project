@@ -1,5 +1,6 @@
 using FinalProject.MVC.Data;
 using FinalProject.MVC.Models;
+using FinalProject.MVC.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +10,16 @@ using Microsoft.EntityFrameworkCore;
 namespace FinalProject.MVC.Controllers;
 
 [Authorize]
-public class BidsController(ApplicationDbContext ctx, UserManager<ApplicationUser> userManager)
-    : Controller
+public class BidsController(
+    ApplicationDbContext ctx,
+    UserManager<ApplicationUser> userManager,
+    EventLogService eventLogService,
+    MailerService mailerService
+) : Controller
 {
+    private readonly EventLogService _eventLogService = eventLogService;
+    private readonly MailerService _mailerService = mailerService;
+
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null)
@@ -31,6 +39,27 @@ public class BidsController(ApplicationDbContext ctx, UserManager<ApplicationUse
             return Forbid();
         }
 
+        var eventLogs = await ctx
+            .EventLogs.Where(e => e.BidId == id)
+            .OrderByDescending(e => e.EventDate)
+            .ToListAsync();
+
+        var eventLogDisplays = new List<EventLogViewModel>();
+        foreach (var log in eventLogs)
+        {
+            var user = await userManager.FindByIdAsync(log.UserId);
+            eventLogDisplays.Add(
+                new EventLogViewModel
+                {
+                    EventDate = log.EventDate,
+                    UserDisplayName = user?.DisplayName ?? user?.UserName ?? "Unknown User",
+                    EventType = log.EventType,
+                    EventDescription = log.EventDescription,
+                }
+            );
+        }
+        ViewBag.EventLogs = eventLogDisplays;
+
         return View(bid);
     }
 
@@ -49,7 +78,6 @@ public class BidsController(ApplicationDbContext ctx, UserManager<ApplicationUse
         }
         else
         {
-            // Only show projects that the user hasn't bid on yet
             var userId = userManager.GetUserId(User);
             var availableProjects = ctx.Projects.Where(p => !p.Bids.Any(b => b.BidderId == userId));
             ViewData["ProjectId"] = new SelectList(availableProjects, "ProjectId", "Title");
@@ -85,14 +113,43 @@ public class BidsController(ApplicationDbContext ctx, UserManager<ApplicationUse
                 bid.AttachmentPath = "/uploads/" + uniqueFileName;
             }
 
-            bid.BidderId = userManager.GetUserId(User);
+            var userId = userManager.GetUserId(User);
+            if (userId == null)
+            {
+                return Problem("not logged in?");
+            }
+            bid.BidderId = userId;
+
             bid.SubmittedTime = DateTime.UtcNow;
+
+            bid.StartTime = DateTime.SpecifyKind(bid.StartTime, DateTimeKind.Utc);
+            bid.EndTime = DateTime.SpecifyKind(bid.EndTime, DateTimeKind.Utc);
+
             bid.BidStatus = BidStatus.Submitted;
             ctx.Add(bid);
             await ctx.SaveChangesAsync();
 
+            await _eventLogService.LogEventAsync(
+                bid.BidderId,
+                "Bid Created",
+                $"Bid (ID: {bid.Id}) was created for project (ID: {bid.ProjectId}).",
+                bid.ProjectId,
+                bid.Id
+            );
+
             if (bid.ProjectId.HasValue)
             {
+                var project = await ctx
+                    .Projects.Include(p => p.Submitter)
+                    .FirstOrDefaultAsync(p => p.ProjectId == bid.ProjectId.Value);
+                if (project?.Submitter?.Email != null)
+                {
+                    await _mailerService.SendEmailAsync(
+                        project.Submitter.Email,
+                        $"New Bid Submitted for Project: {project.Title}",
+                        $"A new bid has been submitted for your project '{project.Title}'. Bid ID: {bid.Id}."
+                    );
+                }
                 return RedirectToAction("Details", "Project", new { id = bid.ProjectId });
             }
             return RedirectToAction("Index", "Home");
@@ -178,8 +235,35 @@ public class BidsController(ApplicationDbContext ctx, UserManager<ApplicationUse
         {
             try
             {
+                bid.SubmittedTime = DateTime.SpecifyKind(bid.SubmittedTime, DateTimeKind.Utc);
+                bid.StartTime = DateTime.SpecifyKind(bid.StartTime, DateTimeKind.Utc);
+                bid.EndTime = DateTime.SpecifyKind(bid.EndTime, DateTimeKind.Utc);
+
                 ctx.Update(bid);
                 await ctx.SaveChangesAsync();
+
+                await _eventLogService.LogEventAsync(
+                    userId!,
+                    "Bid Edited",
+                    $"Bid (ID: {bid.Id}) was edited.",
+                    bid.ProjectId,
+                    bid.Id
+                );
+
+                if (bid.ProjectId.HasValue)
+                {
+                    var project = await ctx
+                        .Projects.Include(p => p.Submitter)
+                        .FirstOrDefaultAsync(p => p.ProjectId == bid.ProjectId.Value);
+                    if (project?.Submitter?.Email != null)
+                    {
+                        await _mailerService.SendEmailAsync(
+                            project.Submitter.Email,
+                            $"Bid Updated for Project: {project.Title}",
+                            $"A bid (ID: {bid.Id}) for your project '{project.Title}' has been updated."
+                        );
+                    }
+                }
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -226,7 +310,10 @@ public class BidsController(ApplicationDbContext ctx, UserManager<ApplicationUse
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var bid = await ctx.Bids.Include(b => b.Project).FirstOrDefaultAsync(b => b.Id == id);
+        var bid = await ctx
+            .Bids.Include(b => b.Project)
+            .ThenInclude(p => p!.Submitter)
+            .FirstOrDefaultAsync(b => b.Id == id); // Include Project and Submitter
 
         var projectIdForRedirect = bid?.ProjectId;
 
@@ -237,6 +324,23 @@ public class BidsController(ApplicationDbContext ctx, UserManager<ApplicationUse
             {
                 return Forbid();
             }
+
+            if (bid.Project?.Submitter?.Email != null)
+            {
+                await _mailerService.SendEmailAsync(
+                    bid.Project.Submitter.Email,
+                    $"Bid Deleted for Project: {bid.Project.Title}",
+                    $"A bid (ID: {bid.Id}) for your project '{bid.Project.Title}' has been deleted."
+                );
+            }
+
+            await _eventLogService.LogEventAsync(
+                userId!,
+                "Bid Deleted",
+                $"Bid (ID: {bid.Id}) was deleted from project (ID: {bid.ProjectId}).",
+                bid.ProjectId,
+                bid.Id
+            );
 
             ctx.Bids.Remove(bid);
         }

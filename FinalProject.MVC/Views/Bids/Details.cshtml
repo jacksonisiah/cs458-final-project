@@ -50,3 +50,39 @@
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>
+
+<hr />
+
+<h3>Bid History</h3>
+@{
+    var eventLogs = ViewBag.EventLogs as List<FinalProject.MVC.Models.EventLogViewModel>;
+}
+
+@if (eventLogs != null && eventLogs.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>User</th>
+                <th>Event</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var log in eventLogs)
+            {
+                <tr>
+                    <td>@log.EventDate.ToLocalTime()</td>
+                    <td>@log.UserDisplayName</td>
+                    <td>@log.EventType</td>
+                    <td>@log.EventDescription</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No history found for this bid.</p>
+}

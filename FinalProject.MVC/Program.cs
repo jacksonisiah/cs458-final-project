@@ -1,7 +1,9 @@
 using FinalProject.MVC.Data;
 using FinalProject.MVC.Models;
+using FinalProject.MVC.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Serilog;
 
 namespace FinalProject.MVC;
@@ -23,6 +25,7 @@ public class Program
             ?? throw new InvalidOperationException(
                 "Connection string 'DefaultConnection' not found."
             );
+
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(
                 connectionString,
@@ -33,6 +36,9 @@ public class Program
                 }
             )
         );
+
+        builder.Services.AddHttpClient();
+
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
         builder
@@ -43,12 +49,22 @@ public class Program
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
         builder.Services.AddControllersWithViews();
+        builder.Services.AddScoped<MailerService>();
+        builder.Services.AddScoped<EventLogService>();
+
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "1" });
+        });
 
         var app = builder.Build();
 
         if (app.Environment.IsDevelopment())
         {
             app.UseMigrationsEndPoint();
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "API"));
         }
         else
         {

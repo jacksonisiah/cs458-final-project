@@ -54,5 +54,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .Entity<Project>()
             .Property(p => p.ProjectStatus)
             .HasColumnType("project_status");
+
+        modelBuilder
+            .Entity<EventLog>()
+            .HasOne(e => e.Project)
+            .WithMany()
+            .HasForeignKey(e => e.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<EventLog>()
+            .HasOne(e => e.Bid)
+            .WithMany()
+            .HasForeignKey(e => e.BidId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
